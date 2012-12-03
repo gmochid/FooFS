@@ -24,8 +24,11 @@ typedef struct {
 
 SuperBlock* createSuperBlock(long capacity, char* name, long sizeBlock, long totalBlock);
 
+void deleteInode(Inode* inode);
+
 //ME
 void addInode(Inode* parent); // kalau parent==null, maka root
 void convertToFile(char* filename);
+Inode* getInodeFromPath(char* path);
 
 #endif /* SUPERBLOCK_H_ */
