@@ -22,6 +22,7 @@ int main() {
 
 	setBlocksData(sb, in, "abcdefghijabcdefgh");
 	printf("%s - %s\n", a->data, b->data);
+	printf("%s\n", getBlocksData(sb, in));
 
 	return 0;
 }

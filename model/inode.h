@@ -20,15 +20,6 @@ typedef struct _Inode {
 	Block* block; // block yang berisi data
 } Inode;
 
-Inode* createInode(char * name, long fileSize, int type, Inode* parent);
-void deleteInode(Inode* this);
-
-void setSibling(Inode* this, Inode* sibling);
-void setChild(Inode* this, Inode* child);
-
-Inode* getParent(Inode* this);
-Inode* getSibling(Inode* this);
-Inode* getChild(Inode* this);
-Block* getBlock(Inode* this);
+void freeInode(Inode* this);
 
 #endif /* INODE_H_ */

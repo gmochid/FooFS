@@ -3,7 +3,15 @@
 #include <string.h>
 #include <stdio.h>
 
-Block* getBlock(Inode* this) {
-	return this->block;
+
+void freeInode(Inode* this) {
+	Block* now = this->block;
+	Block* before;
+	while(now != NULL) {
+		before = now;
+		now = now->nextBlock;
+		deleteBlock(before);
+	}
+	free(this);
 }
 

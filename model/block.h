@@ -16,7 +16,4 @@ typedef struct _Block {
 Block* createBlock(int len, Block* next);
 void deleteBlock(Block* this);
 
-void setData(Block* this, char* data);
-void setNext(Block* this, Block* next);
-
 #endif /* BLOCK_H_ */

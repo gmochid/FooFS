@@ -9,6 +9,7 @@ Block* createBlock(int len, Block* next) {
 }
 
 void deleteBlock(Block* this) {
+	free(this->data);
 	free(this);
 }
 

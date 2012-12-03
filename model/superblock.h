@@ -24,13 +24,16 @@ typedef struct {
 
 SuperBlock* createSuperBlock(long capacity, char* name, long sizeBlock, long totalBlock);
 
-void deleteInode(Inode* inode);
+void deleteInode(SuperBlock* sb, Inode* now, Inode* inode); // DONE
+void removeInode(SuperBlock* sb, Inode* now); // DONE
 
-//ME
-void addInode(Inode* parent); // kalau parent==null, maka root
-void convertToFile(char* filename);
-Inode* getInodeFromPath(char* path);
-void setBlocksData(SuperBlock* sb, Inode* this, char* data);
-char* getBlocksData(SuperBlock* sb, Inode* this);;
+void createInode(SuperBlock * sb, Inode* parent, char * name, long fileSize, int type); // kalau parent==null, maka root, bingung
+void convertToFile(SuperBlock* sb, char* filename); // mikir dulu ngesave ke filenya
+
+Inode* getInodeFromPath(SuperBlock* sb, char* path);
+char* getPathFromInode(SuperBlock* sb, Inode* inode);
+
+void setBlocksData(SuperBlock* sb, Inode* this, char* data); // DONE
+char* getBlocksData(SuperBlock* sb, Inode* this); // DONE
 
 #endif /* SUPERBLOCK_H_ */
