@@ -19,7 +19,4 @@ void deleteBlock(Block* this);
 void setData(Block* this, char* data);
 void setNext(Block* this, Block* next);
 
-char* getData(Block* this);
-Block* getNextBlock(Block* this);
-
 #endif /* BLOCK_H_ */

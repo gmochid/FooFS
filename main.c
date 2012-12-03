@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "model/superblock.h"
 
 void read_input() {
 	printf(">> ");
@@ -9,10 +12,16 @@ void read_input() {
 }
 
 int main() {
-	printf("\n");
-	read_input();
-	while(1) {
-		read_input();
-	}
+	SuperBlock* sb = (SuperBlock*) malloc(sizeof(SuperBlock));
+	sb->sizeBlock = 10;
+	Inode* in = (Inode*) malloc(sizeof(Inode));
+	in->fileSize = 20;
+	Block* b = createBlock(10, NULL);
+	Block* a = createBlock(10, b);
+	in->block = a;
+
+	setBlocksData(sb, in, "abcdefghijabcdefgh");
+	printf("%s - %s\n", a->data, b->data);
+
 	return 0;
 }

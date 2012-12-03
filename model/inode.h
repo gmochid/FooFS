@@ -31,8 +31,4 @@ Inode* getSibling(Inode* this);
 Inode* getChild(Inode* this);
 Block* getBlock(Inode* this);
 
-// ME
-void setBlocksData(char* data);
-char* getBlocksData();
-
 #endif /* INODE_H_ */

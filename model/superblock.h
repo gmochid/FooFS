@@ -30,5 +30,7 @@ void deleteInode(Inode* inode);
 void addInode(Inode* parent); // kalau parent==null, maka root
 void convertToFile(char* filename);
 Inode* getInodeFromPath(char* path);
+void setBlocksData(SuperBlock* sb, Inode* this, char* data);
+char* getBlocksData(SuperBlock* sb, Inode* this);;
 
 #endif /* SUPERBLOCK_H_ */

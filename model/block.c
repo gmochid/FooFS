@@ -20,10 +20,3 @@ void setNext(Block* this, Block* next) {
 	this->nextBlock = next;
 }
 
-char* getData(Block* this) {
-	return this->data;
-}
-
-Block* getNextBlock(Block* this) {
-	return this->nextBlock;
-}
