@@ -1,4 +1,5 @@
 #include "superblock.h"
+#include "../helper.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -17,6 +18,22 @@ SuperBlock* createSuperBlock(char* name, long capacity, long sizeBlock, long tot
 	return sb;
 }
 
+void useResources(SuperBlock* sb, long cap) {
+    sb->availableCapacity -= cap;
+    sb->usedCapacity += cap;
+    int uB = cap / sb->sizeBlock;
+    sb->availableBlock -= uB;
+    sb->usedBlock += uB;
+}
+
+void releaseResources(SuperBlock* sb, long cap) {
+    sb->availableCapacity += cap;
+    sb->usedCapacity -= cap;
+    int uB = cap / sb->sizeBlock;
+    sb->availableBlock += uB;
+    sb->usedBlock = uB;
+}
+
 void setBlocksData(SuperBlock* sb, Inode* this, char* data) {
 	Block* now = this->block;
 	int size = sb->sizeBlock;
@@ -30,7 +47,6 @@ void setBlocksData(SuperBlock* sb, Inode* this, char* data) {
 			memcpy(now->data, data + offset, fsize);
 			(*(now->data + fsize)) = '\0';
 		}
-		printf("%d\n", strlen(now->data));
 		offset += sb->sizeBlock;
 		fsize -= sb->sizeBlock;
 		now = now->nextBlock;
@@ -47,19 +63,26 @@ char* getBlocksData(SuperBlock* sb, Inode* this) {
 	return buff;
 }
 
-int createInode(SuperBlock * sb, Inode* parent, char * name, long fileSize, int type) {
+Inode* createInode(SuperBlock * sb, Inode* parent, char * name, long fileSize, int type) {
 	if(sb->availableCapacity < fileSize) {
-		return 1;
+		return NULL;
 	}
 
 	Inode* inode = (Inode*) malloc(sizeof(Inode));
 	inode->fileSize = fileSize;
 	inode->name = name;
 	inode->type = type;
-	//Alokasi Block (bingung)
+	long i, totalBlock = fileSize / sb->sizeBlock;
+	Block* now = createBlock(sb->sizeBlock, NULL);
+	for(i = 0; i < totalBlock; i++) {
+	    if(i == (totalBlock - 1)) {
+	        inode->block = now;
+	    } else {
+	        now = createBlock(sb->sizeBlock, now);
+	    }
+	}
 
-	sb->usedCapacity += fileSize;
-	sb->availableCapacity -= fileSize;
+	useResources(sb, fileSize);
 
 	if(parent == NULL) { // direktori masih kosong
 		sb->root = inode;
@@ -69,7 +92,7 @@ int createInode(SuperBlock * sb, Inode* parent, char * name, long fileSize, int 
 		inode->parent = parent;
 	}
 
-	return 0;
+	return inode;
 }
 
 void deleteInode(SuperBlock* sb, Inode* now, Inode* inode) {
@@ -109,7 +132,58 @@ void removeInode(SuperBlock* sb, Inode* now) {
 	if(now->child != NULL) {
 		removeInode(sb, now->child);
 	}
-	sb->usedCapacity -= now->fileSize;
-	sb->availableCapacity += now->fileSize;
+	releaseResources(sb, now->fileSize);
 	freeInode(now);
+}
+
+char* getPathFromInode(SuperBlock* sb, Inode* inode) {
+    //printf("--%s--%d\n", inode->name, inode == sb->root);
+    if(inode == sb->root) {
+        return NULL;
+    } else if(inode != NULL) {
+        char* pathRekursif = getPathFromInode(sb, inode->parent);
+        char* path;
+        int len;
+        if(inode->parent != sb->root) {
+            len = strlen(pathRekursif) + 1 + strlen(inode->name);
+            path = (char*) malloc(sizeof(char) * len);
+            strcpy(path, pathRekursif);
+            strcat(path, "/");
+            strcat(path, inode->name);
+        } else {
+            len = 1 + strlen(inode->name);
+            path = (char*) malloc(sizeof(char) * len);
+            strcpy(path, "/");
+            strcat(path, inode->name);
+        }
+        return path;
+    }
+    return NULL;
+}
+
+Inode* getInodeFromPath(SuperBlock* sb, char* path) {
+    if(strcmp(path, "/") == 0) {
+        return sb->root;
+    }
+    char** arr_path; int i;
+
+    //membuat array dari token-token filepath
+    char* z = (char*) malloc(sizeof(char) * (strlen(path) - 1));
+    memmove(z, path + 1, strlen(path) - 1);
+    int len = tokenizer(z, &arr_path, '/', 100);
+
+    Inode* now = sb->root;
+    for(i = 0; i < len; i++) {
+        //printf("%s\n", *(arr_path + i));
+        if(now == NULL)
+            return NULL;
+        now = now->child;
+        while(now != NULL) {
+            if(strcmp(now->name, *(arr_path + i)) == 0) {
+                break;
+            }
+            now = now->sibling;
+        }
+    }
+    return now;
 }

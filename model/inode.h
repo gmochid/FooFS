@@ -21,5 +21,6 @@ typedef struct _Inode {
 } Inode;
 
 void freeInode(Inode* this);
+void printInode(Inode* this);
 
 #endif /* INODE_H_ */

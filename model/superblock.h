@@ -23,21 +23,59 @@ typedef struct {
 } SuperBlock;
 
 /**
- * Membuat SuperBlock baru
+ * Membuat SuperBlock baru (DONE)
  * Relasi (capacity = sizeBlock * totalBlock) harus dipenuhi
  */
-SuperBlock* createSuperBlock(char* name, long capacity, long sizeBlock, long totalBlock); // DONE
+SuperBlock* createSuperBlock(char* name, long capacity, long sizeBlock, long totalBlock);
 
-void deleteInode(SuperBlock* sb, Inode* now, Inode* inode); // DONE
-void removeInode(SuperBlock* sb, Inode* now); // DONE
+/**
+ * Memakai resources dari superblock sebesar cap (DONE)
+ * cap harus kurang dari atau sama dengan kapasitas yang tersedia
+ */
+void useResources(SuperBlock* sb, long cap);
+/**
+ * Melepas resources dari superblock sebesar cap (DONE)
+ */
+void releaseResources(SuperBlock* sb, long cap);
 
-int createInode(SuperBlock * sb, Inode* parent, char * name, long fileSize, int type); // kalau parent==null, maka root, bingung
+/**
+ * Mendelete sebuah inode beserta semua childnya (DONE)
+ */
+void deleteInode(SuperBlock* sb, Inode* now, Inode* inode);
+/**
+ * Meremove memori dari now dan semua block yang dimilikinya (DONE)
+ */
+void removeInode(SuperBlock* sb, Inode* now);
+
+/**
+ * Membuat inode baru (DONE)
+ * @return inode inode yang baru dibuat
+ */
+Inode* createInode(SuperBlock * sb, Inode* parent, char * name, long fileSize, int type);
+/**
+ * Save sebuah superblock pada sebuah file
+ */
 void convertToFile(SuperBlock* sb, char* filename); // mikir dulu ngesave ke filenya
 
+/**
+ * Mengambil sebuah Inode bisa diberikan path tertentu (DONE)
+ * Bila path tidak ditemukan, maka mengembalikan null
+ */
 Inode* getInodeFromPath(SuperBlock* sb, char* path);
+/**
+ * Convert sebuah inode pada superblock menjadi string path (DONE)
+ */
 char* getPathFromInode(SuperBlock* sb, Inode* inode);
 
-void setBlocksData(SuperBlock* sb, Inode* this, char* data); // DONE
-char* getBlocksData(SuperBlock* sb, Inode* this); // DONE
+/**
+ * Memasukkan data pada inode (DONE)
+ * Data yang utuh akan dibagi-bagi menjadi beberapa blok
+ */
+void setBlocksData(SuperBlock* sb, Inode* this, char* data);
+/**
+ * Mengambil data pada inode (DONE)
+ * Data yang telah dibagi-bagi akan disatukan lagi menjadi utuh
+ */
+char* getBlocksData(SuperBlock* sb, Inode* this);
 
 #endif /* SUPERBLOCK_H_ */
