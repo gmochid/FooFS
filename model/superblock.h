@@ -22,12 +22,16 @@ typedef struct {
 	Inode* root; // pointer pada struktur data yg dimiliki superblock ini
 } SuperBlock;
 
-SuperBlock* createSuperBlock(long capacity, char* name, long sizeBlock, long totalBlock);
+/**
+ * Membuat SuperBlock baru
+ * Relasi (capacity = sizeBlock * totalBlock) harus dipenuhi
+ */
+SuperBlock* createSuperBlock(char* name, long capacity, long sizeBlock, long totalBlock); // DONE
 
 void deleteInode(SuperBlock* sb, Inode* now, Inode* inode); // DONE
 void removeInode(SuperBlock* sb, Inode* now); // DONE
 
-void createInode(SuperBlock * sb, Inode* parent, char * name, long fileSize, int type); // kalau parent==null, maka root, bingung
+int createInode(SuperBlock * sb, Inode* parent, char * name, long fileSize, int type); // kalau parent==null, maka root, bingung
 void convertToFile(SuperBlock* sb, char* filename); // mikir dulu ngesave ke filenya
 
 Inode* getInodeFromPath(SuperBlock* sb, char* path);
