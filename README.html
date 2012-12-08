@@ -1,0 +1,18 @@
+<h1 id="fileteleportation">FileTelePortation</h1>
+<p><code>FooFS</code> adalah sebuah aplikasi FTP file sistem sederhana yang memanfaatkan shared memory untuk interaksi antar proses. Aplikasi <code>FooFS</code> mengimplementasi fungsi-fungsi untuk sederhana untuk akses file, seperti membuat direktori, delete direktori, copy file, dsb.</p>
+<p>Untuk kompilasi project ini, gunakan perintah <code>make all</code>. File executable <code>main</code>, untuk run panggil <code>make run</code>.</p>
+<p>Fungsi-fungsi yang dapat dipanggil dari sisi client adalah:</p>
+<ul>
+<li><p><code>format @[filepath] [size]</code>, untuk membuat sebuah device yang mengimplementasi filesistem kita</p></li>
+<li><p><code>mountfs @[filepath] [mount_point]</code>, untuk memasukkan device tersebut pada filesistem manager kita</p></li>
+<li><p><code>umount [mount_point]</code>, untuk mengeluarkan device tersebut dari filesistem manager kita</p></li>
+<li><p><code>pwd</code>, untuk mencetak current directory filesistem manager</p></li>
+<li><p><code>ls &lt;path&gt;</code>, untuk mencetak isi direktori pada pth relatif pada current directory</p></li>
+<li><p><code>cd [path]</code>, untuk masuk pada sebuah direktori dari current directory</p></li>
+<li><p><code>mkdir [path]</code>, buat direktori baru</p></li>
+<li><p><code>rm [path]</code>, menghapus direktori atau file dari filesistem kita</p></li>
+<li><p><code>cp [@][path1] [@][path2]</code>, mengcopy file dari path1 ke path2</p></li>
+<li><p><code>mv [@][path1] [@][path2]</code>, memindahkan file dari path1 ke path2</p></li>
+<li><p><code>cat [path]</code>, mencetak isi dari file pada path</p></li>
+<li><p><code>exit</code>, keluar dari filesistem</p></li>
+</ul>

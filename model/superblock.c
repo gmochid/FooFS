@@ -121,7 +121,7 @@ void deleteInode(SuperBlock* sb, Inode* now, Inode* inode) {
 			sb->root = NULL;
 		} else {
 		    releaseResources(sb, now->fileSize);
-			removeInode(sb, now->child);
+		    removeInode(sb, now->child);
 			freeInode(now);
 		}
 	} else {
@@ -147,14 +147,16 @@ void deleteInode(SuperBlock* sb, Inode* now, Inode* inode) {
 }
 
 void removeInode(SuperBlock* sb, Inode* now) {
-	if(now->sibling != NULL) {
-		removeInode(sb, now->sibling);
-	}
-	if(now->child != NULL) {
-		removeInode(sb, now->child);
-	}
-	releaseResources(sb, now->fileSize);
-	freeInode(now);
+    if(now != NULL) {
+        if(now->sibling != NULL) {
+            removeInode(sb, now->sibling);
+        }
+        if(now->child != NULL) {
+            removeInode(sb, now->child);
+        }
+        releaseResources(sb, now->fileSize);
+        freeInode(now);
+    }
 }
 
 char* getPathFromInode(SuperBlock* sb, Inode* inode) {

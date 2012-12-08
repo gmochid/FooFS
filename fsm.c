@@ -245,34 +245,39 @@ void fsm_CP(char* pathfrom, char* pathto) {
     if(pathfrom[0] == '@') { // copy dari OS ke filesystem
         removeFront(pathfrom, 1);
 
-        int fd = open(pathfrom, O_RDONLY);
-        if(fd == -1) {
+        printf("%s\n", pathfrom);
+        FILE* file = fopen(pathfrom, "w+");
+        if(file == NULL) {
             printf("Reading file %s\n", pathfrom);
             return;
         }
         //printf("%d\n", fd);
-        int size = lseek(fd, 0, SEEK_END);
         //printf("%d\n", size);
 
         char data[STDSIZE];
-        int s = read(fd, data, size);
-        //printf("%d\n", s);
-        //data[size] = '\0';
-        //printf("---%s\n",data);
+        char temp[STDSIZE];
+        //fgets(temp, STDSIZE, file);
+        //strcat(data, temp);
+        strcpy(data, "");
+        while(fscanf(file, "%s", temp) != EOF) {
+            strcat(data, temp);
+            printf("-%s\n", temp);
+        }
+        printf("--%s\n", data);
 
-        int isize = size;
+        int isize = strlen(data);
         //size harus bisa dibagi 4
         if(isize % 4 == 1) {
             isize+=3;
-        } else if(size % 4 == 2) {
+        } else if(isize % 4 == 2) {
             isize+=2;
-        } else if(size % 4 == 3) {
+        } else if(isize % 4 == 3) {
             isize+=1;
         }
 
         Inode* inode = createInode(currentSuperblock,
                 getInodeFromPath(currentSuperblock, pathto),
-                "coba", isize, 1);
+                pathfrom, isize, 1);
         setBlocksData(currentSuperblock, inode, data);
 
     } else if(pathto[0] == '@') { // copy filesytem ke OS
