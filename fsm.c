@@ -247,11 +247,7 @@ void fsm_CP(char* pathfrom, char* pathto) {
         Inode* from = getInodeFromPath(currentSuperblock, pathfrom);
         Inode* to = getInodeFromPath(currentSuperblock, pathto);
         if((from != NULL) && (to != NULL)) {
-            Inode* cp = createInode(currentSuperblock, to, from->name, from->fileSize, from->type);
-            if(from->type == 1) {
-                setBlocksData(currentSuperblock, cp, getBlocksData(currentSuperblock, from));
-            } else {
-            }
+            copyInode(currentSuperblock, from, to);
         } else {
             printf("ERROR!\n<pathfrom> or <pathto> not exist\n");
         }

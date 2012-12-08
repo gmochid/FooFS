@@ -74,6 +74,7 @@ Inode* getInodeFromPath(SuperBlock* sb, char* path);
 char* getPathFromInode(SuperBlock* sb, Inode* inode);
 
 void moveInode(SuperBlock*sb, Inode* from, Inode* parentTo);
+void copyInode(SuperBlock*sb, Inode* from, Inode* parentTo);
 
 /**
  * Memasukkan data pada inode (DONE)

@@ -211,4 +211,34 @@ Inode* getInodeFromPath(SuperBlock* sb, char* path) {
 }
 
 void moveInode(SuperBlock*sb, Inode* from, Inode* parentTo) {
+    Inode* before = NULL, now = from->parent->child;
+
+    //beresin asal
+    while(now != from) {
+        before = now;
+        now = now->sibling;
+    }
+    if(before == NULL) {
+        from->parent = from->sibling;
+    } else {
+        before->sibling = from->sibling;
+    }
+
+    //beresin tujuan
+    from->sibling = parentTo->child;
+    parentTo->child = from;
 }
+
+void copyInode(SuperBlock*sb, Inode* from, Inode* parentTo) {
+    Inode* inode = createInode(sb, parentTo, from->name, from->fileSize, from->type);
+    if(inode->type == 1) {
+        setBlocksData(currentSuperblock, inode, getBlocksData(currentSuperblock, from));
+    } else  {
+        Inode* child = from->child;
+        while(child != NULL) {
+            copyInode(sb, child, inode);
+            child = child->sibling;
+        }
+    }
+}
+
