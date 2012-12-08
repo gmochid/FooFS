@@ -2,8 +2,9 @@
 
 SuperBlock* createSuperBlock(char* name, long capacity, long sizeBlock, long totalBlock) {
 	SuperBlock* sb = (SuperBlock*) malloc (sizeof(SuperBlock));
+	sb->name = (char*) malloc(sizeof(char) * STDSIZE);
 	sb->sizeBlock = sizeBlock;
-	sb->name = name;
+	strcpy(sb->name, name);
 	sb->capacity = capacity;
 	sb->availableCapacity = sb->capacity;
 	sb->usedCapacity = 0;
@@ -211,7 +212,8 @@ Inode* getInodeFromPath(SuperBlock* sb, char* path) {
 }
 
 void moveInode(SuperBlock*sb, Inode* from, Inode* parentTo) {
-    Inode* before = NULL, now = from->parent->child;
+    Inode* before = NULL;
+    Inode *now = from->parent->child;
 
     //beresin asal
     while(now != from) {
@@ -232,7 +234,7 @@ void moveInode(SuperBlock*sb, Inode* from, Inode* parentTo) {
 void copyInode(SuperBlock*sb, Inode* from, Inode* parentTo) {
     Inode* inode = createInode(sb, parentTo, from->name, from->fileSize, from->type);
     if(inode->type == 1) {
-        setBlocksData(currentSuperblock, inode, getBlocksData(currentSuperblock, from));
+        setBlocksData(sb, inode, getBlocksData(sb, from));
     } else  {
         Inode* child = from->child;
         while(child != NULL) {

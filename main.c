@@ -6,6 +6,7 @@
 #include "shm.h"
 
 int end;
+int mount;
 
 void sigchld_handler(int s)
 {
@@ -15,6 +16,7 @@ void sigchld_handler(int s)
 void read_input() {
     char* command = open_and_init_shm();
     end = 0;
+    mount = 0;
     while(!end) {
         printf("\n>> ");
 
@@ -44,6 +46,7 @@ void read_input() {
             if(len != 3) {
                 printf("Use : mount @<pathfile> <mount-point>\n");
             } else {
+                mount = 1;
                 strcpy(command, s);
                 if(!fork()) {
                     fsm_handleInput();
@@ -55,9 +58,13 @@ void read_input() {
         } else if(!strcmp(*(token), "exit")) {
             end = 1;
         } else {
-            strcpy(command, s);
-            while(strcmp(command, "DONE"))
-                usleep(30 * 1000);
+            if(mount) {
+                strcpy(command, s);
+                while(strcmp(command, "DONE"))
+                    usleep(30 * 1000);
+            } else {
+                printf("Input not defined\n");
+            }
         }
 
     }
@@ -98,5 +105,6 @@ void testInodetoPath() {
 
 int main() {
     read_input();
+    printf("Thank you :)\n");
 	return 0;
 }

@@ -136,6 +136,7 @@ void fsm_MOUNT(char* filepath, char* wd){
     Inode* inode;
     Block* block = NULL;
 
+
     fscanf(file, "%s", name);
     fscanf(file, "%ld %ld %ld", &sizeB, &capacity, &totalB);
     currentSuperblock = createSuperBlock(name, capacity, sizeB, totalB);
@@ -241,8 +242,48 @@ void writeToFile(FILE* file, SuperBlock* sb) {
 }
 
 void fsm_CP(char* pathfrom, char* pathto) {
-    if(pathfrom[0] == '@') {
-    } else if(pathto[0] == '@') {
+    if(pathfrom[0] == '@') { // copy dari OS ke filesystem
+        removeFront(pathfrom, 1);
+
+        int fd = open(pathfrom, O_RDONLY);
+        if(fd == -1) {
+            printf("Reading file %s\n", pathfrom);
+            return;
+        }
+        //printf("%d\n", fd);
+        int size = lseek(fd, 0, SEEK_END);
+        //printf("%d\n", size);
+
+        char data[STDSIZE];
+        int s = read(fd, data, size);
+        //printf("%d\n", s);
+        //data[size] = '\0';
+        //printf("---%s\n",data);
+
+        int isize = size;
+        //size harus bisa dibagi 4
+        if(isize % 4 == 1) {
+            isize+=3;
+        } else if(size % 4 == 2) {
+            isize+=2;
+        } else if(size % 4 == 3) {
+            isize+=1;
+        }
+
+        Inode* inode = createInode(currentSuperblock,
+                getInodeFromPath(currentSuperblock, pathto),
+                "coba", isize, 1);
+        setBlocksData(currentSuperblock, inode, data);
+
+    } else if(pathto[0] == '@') { // copy filesytem ke OS
+        char* data = getBlocksData(currentSuperblock, getInodeFromPath(currentSuperblock, pathfrom));
+
+        removeFront(pathto, 1);
+        strcat(pathto, "/test");
+
+        int fd = open(pathto, O_RDWR | O_APPEND | O_CREAT, 0666);
+        write(fd, data, strlen(data));
+
     } else if((pathfrom[0] != '@') && (pathto[0] != '@')) {
         Inode* from = getInodeFromPath(currentSuperblock, pathfrom);
         Inode* to = getInodeFromPath(currentSuperblock, pathto);
@@ -251,6 +292,7 @@ void fsm_CP(char* pathfrom, char* pathto) {
         } else {
             printf("ERROR!\n<pathfrom> or <pathto> not exist\n");
         }
+
     } else {
         printf("Cant copy file from fs OS to fs OS\n");
     }
