@@ -8,9 +8,21 @@
 #include "fsm.h"
 
 void fsm_MKDIR(char* newDirectory) {
-    Inode* Parent=getInodeFromPath(currentSuperblock,currentDirectory); //mengambil inode dari direktori yang sedang digunakan, untuk dijadikan parent dari direktori baru
-    createInode(currentSuperblock, Parent, newDirectory, 0, 0); //karena yang akan dibuat adalah direktori, maka parameter 'type' diisi 0
-    //dan karena itu pula parameter 'filesize' diisi 0
+    char ** str_tok;
+    char temp[1 << 12];
+    strcpy(temp, currentDirectory);
+    strcat(temp, newDirectory);
+    char res[1 << 10];
+    parse_path(&str_tok, temp, res);
+    Inode* now = getInodeFromPath(currentSuperblock, res);
+    if(now == NULL) {
+        Inode* Parent=getInodeFromPath(currentSuperblock,currentDirectory); //mengambil inode dari direktori yang sedang digunakan, untuk dijadikan parent dari direktori baru
+        createInode(currentSuperblock, Parent, newDirectory, 0, 0); //karena yang akan dibuat adalah direktori, maka parameter 'type' diisi 0
+        //dan karena itu pula parameter 'filesize' diisi 0
+        printf("Directory %s created\n", res);
+        return;
+    }
+    printf("ERROR!\nDirectory or file %s exist\n", res);
 }
 
 void fsm_PWD() {
@@ -30,12 +42,20 @@ void fsm_STATUS() {
 }
 
 void fsm_RM(char* path) {
-    Inode* cwd = getInodeFromPath(currentSuperblock, currentDirectory);
+    char ** str_tok;
+    char temp[1 << 12];
+    strcpy(temp, currentDirectory);
+    strcat(temp, path);
+    char res[1 << 10];
+    parse_path(&str_tok, temp, res);
+
+    Inode* cwd = getInodeFromPath(currentSuperblock, res);
     if(cwd == NULL) {
-        printf("File or directory not exist\n");
+        printf("ERROR!\nFile or directory not exist\n");
         return;
     }
     deleteInode(currentSuperblock, currentSuperblock->root, cwd);
+    printf("File %s deleted\n", res);
 }
 
 void fsm_CD(char* path) {
@@ -45,7 +65,17 @@ void fsm_CD(char* path) {
     strcat(temp, path);
     char res[1 << 10];
     parse_path(&str_tok, temp, res);
+    Inode* inode = getInodeFromPath(currentSuperblock, res);
+    if(inode == NULL) {
+        printf("ERROR!\nPath doesn't exist\n");
+        return;
+    }
+    if(inode->type) {
+        printf("ERROR!\n%s is not a directory\n", res);
+        return;
+    }
     strcpy(currentDirectory, res);
+    printf("Directory changed to %s\n", res);
 }
 
 void fsm_LS(char* path) {
@@ -55,7 +85,20 @@ void fsm_LS(char* path) {
         strcat(cwd, path);
     }
 
-    Inode* inode = getInodeFromPath(currentSuperblock, cwd);
+    char ** str_tok;
+    char res[1 << 10];
+    parse_path(&str_tok, cwd, res);
+
+    Inode* inode = getInodeFromPath(currentSuperblock, res);
+    if(inode == NULL) {
+        printf("ERROR!\nPath doesn't exist\n");
+        return;
+    }
+    if(inode->type) {
+        printf("ERROR!\n%s is not a directory\n", res);
+        return;
+    }
+
     Inode* child = inode->child;
     while(child != NULL) {
         if(child->type) {
@@ -128,7 +171,21 @@ void fsm_UNMOUNT() {
 }
 
 void fsm_CAT(char* filepath) {
-    /* TODO */
+    char cwd[STDSIZE], buffer[STDSIZE];
+    char ** token;
+    strcpy(cwd, currentDirectory);
+    strcat(cwd, filepath);
+    parse_path(&token, cwd, buffer);
+    Inode* inode = getInodeFromPath(currentSuperblock, buffer);
+    if(inode == NULL) {
+        printf("Path doesn't exist\n");
+        return;
+    }
+    if(inode->type == 0) {
+        printf("%s not a file\n", buffer);
+        return;
+    }
+    printf("File %s content:\n%s\n", getBlocksData(currentSuperblock, inode));
 }
 
 void writeToFile(FILE* file, SuperBlock* sb) {
@@ -158,7 +215,6 @@ void writeToFile(FILE* file, SuperBlock* sb) {
         }
         fprintf(file, "%s\n%ld\n%d\n", now->name, now->fileSize, now->type);
         Block* b = now->block;
-
 
         while(b != NULL) {
             fprintf(file, "2\n%s\n", b->data);
@@ -221,7 +277,11 @@ void fsm_handleInput() {
         } else if(!strcmp(*(token), "mv")) {
 
         } else if(!strcmp(*(token), "cat")) {
-
+            if(len == 2) {
+                fsm_CAT(*(token + 1));
+            } else {
+                printf("Use CAT <filepath>\n");
+            }
         } else if(!strcmp(*(token), "status")) {
             fsm_STATUS();
         } else {

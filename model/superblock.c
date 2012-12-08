@@ -75,14 +75,17 @@ Inode* createInode(SuperBlock * sb, Inode* parent, char * name, long fileSize, i
 	} else {
 	    sb->directoryCount++;
 	}
-	long i, totalBlock = fileSize / sb->sizeBlock;
-	Block* now = createBlock(sb->sizeBlock, NULL);
-	for(i = 0; i < totalBlock; i++) {
-	    if(i == (totalBlock - 1)) {
-	        inode->block = now;
-	    } else {
-	        now = createBlock(sb->sizeBlock, now);
-	    }
+
+	if(inode->type) {
+        long i, totalBlock = fileSize / sb->sizeBlock;
+        Block* now = createBlock(sb->sizeBlock, NULL);
+        for(i = 0; i < totalBlock; i++) {
+            if(i == (totalBlock - 1)) {
+                inode->block = now;
+            } else {
+                now = createBlock(sb->sizeBlock, now);
+            }
+        }
 	}
 
 	useResources(sb, fileSize);
