@@ -24,23 +24,34 @@ void read_input() {
 
         char **token;
         strcpy(g, s);
-        tokenizer(g, &token, ' ', 100);
+        int len = tokenizer(g, &token, ' ', 100);
 
         if(!strcmp(*(token), "format")) {
-            char path[STDSIZE];
-            long len;
+            if(len != 3) {
+                printf("Use : format @<pathfile> <size>\n");
+            } else {
+                char path[STDSIZE];
+                long len;
 
-            strcpy(path, *(token+1));
-            removeFront(path, 1);
+                strcpy(path, *(token+1));
+                removeFront(path, 1);
 
-            sscanf(*(token+2), "%ld", &len);
+                sscanf(*(token+2), "%ld", &len);
 
-            fsm_FORMAT(path, len);
-        } else if(!strcmp(*(token), "mount")) {
-            strcpy(command, s);
-            if(!fork()) {
-                fsm_handleInput();
+                fsm_FORMAT(path, len);
             }
+        } else if(!strcmp(*(token), "mount")) {
+            if(len != 3) {
+                printf("Use : mount @<pathfile> <mount-point>\n");
+            } else {
+                strcpy(command, s);
+                if(!fork()) {
+                    fsm_handleInput();
+                }
+                while(strcmp(command, "DONE"))
+                    usleep(30 * 1000);
+            }
+
         } else if(!strcmp(*(token), "exit")) {
             end = 1;
         } else {

@@ -67,9 +67,13 @@ Inode* createInode(SuperBlock * sb, Inode* parent, char * name, long fileSize, i
 	}
 
 	Inode* inode = (Inode*) malloc(sizeof(Inode));
+	inode->name = (char*) malloc(sizeof(char) * STDSIZE);
 	inode->fileSize = fileSize;
-	inode->name = name;
+	strcpy(inode->name, name);
 	inode->type = type;
+	inode->sibling = NULL;
+	inode->parent = NULL;
+	inode->child = NULL;
 	if(type) {
 	    sb->fileCount++;
 	} else {
@@ -184,9 +188,11 @@ Inode* getInodeFromPath(SuperBlock* sb, char* path) {
     char** arr_path; int i;
 
     //membuat array dari token-token filepath
-    char* z = (char*) malloc(sizeof(char) * (strlen(path) - 1));
-    memmove(z, path + 1, strlen(path) - 1);
+    char z[STDSIZE];
+    strcpy(z, path);
     int len = tokenizer(z, &arr_path, '/', 100);
+
+    //printf("||len = %d - %s\n", len, );
 
     Inode* now = sb->root;
     for(i = 0; i < len; i++) {
@@ -202,4 +208,7 @@ Inode* getInodeFromPath(SuperBlock* sb, char* path) {
         }
     }
     return now;
+}
+
+void moveInode(SuperBlock*sb, Inode* from, Inode* parentTo) {
 }

@@ -21,7 +21,7 @@ char* command;
  * not ready
  */
 void fsm_FORMAT(char* filepath, long size);
-void fsm_MOUNT(char* filepath);
+void fsm_MOUNT(char* filepath, char* wd);
 void fsm_UNMOUNT();
 /**
  * Mencetak ke layar currentDirectory
@@ -58,5 +58,9 @@ void fsm_CAT(char* filepath);
 void writeToFile(FILE* file, SuperBlock* sb);
 
 void fsm_handleInput();
+
+void fsm_CP(char* pathfrom, char* pathto);
+
+void fsm_MV(char* pathfrom, char* pathto);
 
 #endif /* FUNCTIONAL_H_ */

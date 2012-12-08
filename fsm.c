@@ -67,7 +67,7 @@ void fsm_CD(char* path) {
     parse_path(&str_tok, temp, res);
     Inode* inode = getInodeFromPath(currentSuperblock, res);
     if(inode == NULL) {
-        printf("ERROR!\nPath doesn't exist\n");
+        printf("ERROR!\nPath %s doesn't exist\n", res);
         return;
     }
     if(inode->type) {
@@ -89,13 +89,18 @@ void fsm_LS(char* path) {
     char res[1 << 10];
     parse_path(&str_tok, cwd, res);
 
+
     Inode* inode = getInodeFromPath(currentSuperblock, res);
     if(inode == NULL) {
-        printf("ERROR!\nPath doesn't exist\n");
+        printf("ERROR!\nPath %s doesn't exist\n", res);
         return;
     }
     if(inode->type) {
         printf("ERROR!\n%s is not a directory\n", res);
+        return;
+    }
+    if(inode->child == NULL) {
+        printf("Directory %s is empty\n", res);
         return;
     }
 
@@ -114,21 +119,25 @@ void fsm_FORMAT(char* filepath, long size) {
     long sizeB = (1 << 12);
     long totalB = size / sizeB;
     SuperBlock* sb = createSuperBlock("GMO", size, sizeB, totalB);
+    Inode* inode = createInode(sb, NULL, "root", 0 ,0);
 
     FILE* file = fopen(filepath, "w+");
     writeToFile(file, sb);
     fclose(file);
 }
 
-void fsm_MOUNT(char* filepath){
+void fsm_MOUNT(char* filepath, char* wd){
+    removeFront(filepath, 1);
     FILE* file = fopen(filepath, "r+");
+    strcpy(fileFormatPath, filepath);
     char name[STDSIZE];
     long sizeB, capacity, totalB;
     int tp;
     Inode* inode;
-    Block* block;
+    Block* block = NULL;
 
-    fscanf(file, "%s%ld%ld%ld", name, &sizeB, &capacity, &totalB);
+    fscanf(file, "%s", name);
+    fscanf(file, "%ld %ld %ld", &sizeB, &capacity, &totalB);
     currentSuperblock = createSuperBlock(name, capacity, sizeB, totalB);
 
     fscanf(file, "%d", &tp);
@@ -148,17 +157,19 @@ void fsm_MOUNT(char* filepath){
             }
         } else { // tp == 2
             char data[currentSuperblock->sizeBlock];
-            fscanf(file, "%s", data);
-            Block* after = createBlockData(currentSuperblock->sizeBlock, data, NULL);
-            if(inode->block == NULL) {
-                inode->block = after;
-                block = after;
+            fgets(data, currentSuperblock->sizeBlock, file);
+            if(block == NULL) {
+                block = inode->block;
+                strcpy(block->data, data);
             } else {
-                block->nextBlock = after;
+                strcpy(block->data, data);
             }
+            block = block->nextBlock;
         }
         fscanf(file, "%d", &tp);
     }
+    strcpy(currentDirectory, wd);
+    printf("Filesystem mounted successfully to %s\n", currentDirectory);
 }
 
 void fsm_UNMOUNT() {
@@ -229,6 +240,42 @@ void writeToFile(FILE* file, SuperBlock* sb) {
     fprintf(file, "3\n");
 }
 
+void fsm_CP(char* pathfrom, char* pathto) {
+    if(pathfrom[0] == '@') {
+    } else if(pathto[0] == '@') {
+    } else if((pathfrom[0] != '@') && (pathto[0] != '@')) {
+        Inode* from = getInodeFromPath(currentSuperblock, pathfrom);
+        Inode* to = getInodeFromPath(currentSuperblock, pathto);
+        if((from != NULL) && (to != NULL)) {
+            Inode* cp = createInode(currentSuperblock, to, from->name, from->fileSize, from->type);
+            if(from->type == 1) {
+                setBlocksData(currentSuperblock, cp, getBlocksData(currentSuperblock, from));
+            } else {
+            }
+        } else {
+            printf("ERROR!\n<pathfrom> or <pathto> not exist\n");
+        }
+    } else {
+        printf("Cant copy file from fs OS to fs OS\n");
+    }
+}
+
+void fsm_MV(char* pathfrom, char* pathto) {
+    if(pathfrom[0] == '@') {
+    } else if(pathto[0] == '@') {
+    } else if((pathfrom[0] != '@') && (pathto[0] != '@')) {
+        Inode* from = getInodeFromPath(currentSuperblock, pathfrom);
+        Inode* to = getInodeFromPath(currentSuperblock, pathto);
+        if((from != NULL) && (to != NULL)) {
+            moveInode(currentSuperblock, from, to);
+        } else {
+            printf("ERROR!\n<pathfrom> or <pathto> not exist\n");
+        }
+    } else {
+        printf("Cant move file from fs OS to fs OS\n");
+    }
+}
+
 void fsm_handleInput() {
     command = open_shm();
 
@@ -239,7 +286,7 @@ void fsm_handleInput() {
         int len = tokenizer(g, &token, ' ', 100);
 
         if(!strcmp(*(token), "mount")) {
-
+            fsm_MOUNT(*(token + 1), *(token + 2));
         } else if(!strcmp(*(token), "unmount")) {
             if(len == 2) {
                 fsm_UNMOUNT();
@@ -258,7 +305,7 @@ void fsm_handleInput() {
             if(len == 2) {
                 fsm_CD(*(token + 1));
             } else {
-                printf("Use LIST <path>\n");
+                printf("Use CD <path>\n");
             }
         } else if(!strcmp(*(token), "mkdir")) {
             if(len == 2) {
@@ -273,9 +320,17 @@ void fsm_handleInput() {
                 printf("Use RM <path>\n");
             }
         } else if(!strcmp(*(token), "cp")) {
-
+            if(len == 3) {
+                fsm_CP(*(token+1), *(token+2));
+            } else  {
+                printf("Use CP <pathfrom> <pathto>");
+            }
         } else if(!strcmp(*(token), "mv")) {
-
+            if(len == 3) {
+                fsm_MV(*(token+1), *(token+2));
+            } else  {
+                printf("Use MV <pathfrom> <pathto>");
+            }
         } else if(!strcmp(*(token), "cat")) {
             if(len == 2) {
                 fsm_CAT(*(token + 1));
