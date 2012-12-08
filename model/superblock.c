@@ -1,8 +1,4 @@
 #include "superblock.h"
-#include "../helper.h"
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 
 SuperBlock* createSuperBlock(char* name, long capacity, long sizeBlock, long totalBlock) {
 	SuperBlock* sb = (SuperBlock*) malloc (sizeof(SuperBlock));
@@ -15,6 +11,8 @@ SuperBlock* createSuperBlock(char* name, long capacity, long sizeBlock, long tot
 	sb->availableBlock = sb->totalBlock;
 	sb->usedBlock = 0;
 	sb->root = NULL;
+	sb->directoryCount = 0;
+	sb->fileCount = 0;
 	return sb;
 }
 
@@ -28,7 +26,7 @@ void useResources(SuperBlock* sb, long cap) {
 
 void releaseResources(SuperBlock* sb, long cap) {
     sb->availableCapacity += cap;
-    sb->usedCapacity -= cap;
+    sb->usedCapacity  -= cap;
     int uB = cap / sb->sizeBlock;
     sb->availableBlock += uB;
     sb->usedBlock = uB;
@@ -72,6 +70,11 @@ Inode* createInode(SuperBlock * sb, Inode* parent, char * name, long fileSize, i
 	inode->fileSize = fileSize;
 	inode->name = name;
 	inode->type = type;
+	if(type) {
+	    sb->fileCount++;
+	} else {
+	    sb->directoryCount++;
+	}
 	long i, totalBlock = fileSize / sb->sizeBlock;
 	Block* now = createBlock(sb->sizeBlock, NULL);
 	for(i = 0; i < totalBlock; i++) {
@@ -97,11 +100,21 @@ Inode* createInode(SuperBlock * sb, Inode* parent, char * name, long fileSize, i
 
 void deleteInode(SuperBlock* sb, Inode* now, Inode* inode) {
 	if(now == inode) {
+	    if(inode->type) {
+            sb->fileCount--;
+        } else {
+            sb->directoryCount--;
+        }
+
 		if(now == sb->root) {
-			removeInode(sb, now);
+		    releaseResources(sb, now->fileSize);
+			removeInode(sb, now->child);
+			freeInode(now);
 			sb->root = NULL;
 		} else {
-			removeInode(sb, now);
+		    releaseResources(sb, now->fileSize);
+			removeInode(sb, now->child);
+			freeInode(now);
 		}
 	} else {
 		if(now->sibling != NULL) {

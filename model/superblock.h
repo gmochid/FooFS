@@ -9,6 +9,10 @@
 #define SUPERBLOCK_H_
 
 #include "inode.h"
+#include "../helper.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 typedef struct {
 	long capacity; // kapasitas total sebuah blok
@@ -19,6 +23,8 @@ typedef struct {
 	long totalBlock; // total block pada filesystem ini
 	long usedBlock; // total block yang telah dialokasi
 	long availableBlock; // total block yang masih dapat dialokasi
+	long directoryCount;
+	long fileCount;
 	Inode* root; // pointer pada struktur data yg dimiliki superblock ini
 } SuperBlock;
 

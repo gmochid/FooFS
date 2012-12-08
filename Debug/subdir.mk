@@ -4,16 +4,22 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../fsm.c \
 ../helper.c \
-../main.c 
+../main.c \
+../shm.c 
 
 OBJS += \
+./fsm.o \
 ./helper.o \
-./main.o 
+./main.o \
+./shm.o 
 
 C_DEPS += \
+./fsm.d \
 ./helper.d \
-./main.d 
+./main.d \
+./shm.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

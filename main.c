@@ -2,15 +2,57 @@
 #include <stdlib.h>
 #include <string.h>
 #include "model/superblock.h"
+#include "fsm.h"
+#include "shm.h"
 
-void read_input() {
-	printf(">> ");
+int end;
 
-	char input[256];
-	fgets(input, sizeof(input), stdin);
-	input[strlen(input) - 1] = '\0'; // remove new line
+void sigchld_handler(int s)
+{
+    while (waitpid(-1, NULL, WNOHANG) > 0);
 }
 
+void read_input() {
+    char* command = open_and_init_shm();
+    end = 0;
+    while(!end) {
+        printf("\n>> ");
+
+        char s[STDSIZE], g[STDSIZE];
+        fgets(s, sizeof(s), stdin);
+        s[strlen(s) - 1] = '\0'; // remove new line
+
+        char **token;
+        strcpy(g, s);
+        tokenizer(g, &token, ' ', 100);
+
+        if(!strcmp(*(token), "format")) {
+            char path[STDSIZE];
+            long len;
+
+            strcpy(path, *(token+1));
+            removeFront(path, 1);
+
+            sscanf(*(token+2), "%ld", &len);
+
+            fsm_FORMAT(path, len);
+        } else if(!strcmp(*(token), "mount")) {
+            strcpy(command, s);
+            if(!fork()) {
+                fsm_handleInput();
+            }
+        } else if(!strcmp(*(token), "exit")) {
+            end = 1;
+        } else {
+            strcpy(command, s);
+            while(strcmp(command, "DONE"))
+                usleep(30 * 1000);
+        }
+
+    }
+
+}
+/*
 void testCopyBinary() {
     SuperBlock* sb = (SuperBlock*) malloc(sizeof(SuperBlock));
     sb->sizeBlock = 10;
@@ -23,6 +65,7 @@ void testCopyBinary() {
     setBlocksData(sb, in, "abcdefghijabcdefgh");
     printf("%s - %s\n", a->data, b->data);
     printf("%s\n", getBlocksData(sb, in));
+
 }
 
 void testInodetoPath() {
@@ -33,12 +76,16 @@ void testInodetoPath() {
     //printInode(root);
     //printInode(home);
     //printInode(rosyid);
-    printf("%s\n", getPathFromInode(sb, rosyid));
-    char* s = "/home/rosyid";
+    printf("%s\n", getPathFromInode(sb, home));
+    char s[] = "/home/rosyid";
     printf("%d\n", getInodeFromPath(sb, s) == rosyid);
+    printf("------\n");
+    //deleteInode(sb, root, home);
+    fsm_FORMAT("test", 65536);
 }
+*/
 
 int main() {
-    testInodetoPath();
+    read_input();
 	return 0;
 }

@@ -58,6 +58,52 @@ void bufferFileTo(char* path, char*toPath, char** buff, int size_buff) {
 	write(fdB, *buff, size);
 }
 
+int parse_path(char ***str_tok, char *path, char *buff)
+{
+    int i, j, k, l;
+    l = strlen(path);
+
+    for (i = 0; i < l; i++) {
+        path[i] = (path[i] == '/') ? '\0' : path[i];
+    }
+
+    *str_tok = (char**) calloc(i, sizeof(char*));
+
+    j = 0;
+    k = 1;
+    for (i = 0; i < l; i++) {
+        if (path[i] != '\0' && k == 1) {
+            if (!strcmp(&path[i], "..")) {
+                --j;
+            }
+            else {
+                (*str_tok)[j++] = &path[i];
+            }
+            k = 0;
+        }
+        else if (path[i] == '\0') {
+            k = 1;
+        }
+
+    }
+
+    strcpy(buff, "/");
+    for (i = 0; i < j; i++) {
+        strcat(buff, (*str_tok)[i]);
+        strcat(buff, "/");
+    }
+
+    return j;
+}
+
+void removeFront(char* str, int size) {
+    int len = strlen(str), i = 0;
+    for(; i < len - size; i++) {
+        str[i] = str[i+size];
+    }
+    str[i] = '\0';
+}
+
 /*
 int main()
 {
